@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conagra SOC</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
+
+    canvas { display: block; }
+
+    #overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+    }
+
+    /* ── Conagra Brands Logo ── */
+    #logo img {
+      width: clamp(180px, 28vw, 360px);
+      height: auto;
+      filter:
+        drop-shadow(0 0 8px rgba(228,65,48,0.8))
+        drop-shadow(0 0 22px rgba(7,118,179,0.6))
+        drop-shadow(0 0 44px rgba(113,184,66,0.5))
+        brightness(1.05);
+    }
+
+    /* ── SOC title ── */
+    #soc-title {
+      font-family: 'Courier New', monospace;
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      letter-spacing: 0.45em;
+      color: #fff;
+      text-shadow:
+        0 0 8px #E44130,
+        0 0 20px #0776B3,
+        0 0 40px #71B842;
+      text-transform: uppercase;
+    }
+
+    /* thin separator line */
+    #sep {
+      width: clamp(200px, 40vw, 500px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #E44130 20%, #71B842 50%, #0776B3 80%, transparent);
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div id="overlay">
+  <!-- Conagra Brands Logo -->
+  <div id="logo">
+    <img
+      src="https://upload.wikimedia.org/wikipedia/en/4/44/Conagra_brands_logo17.png"
+      alt="Conagra Brands"
+    />
+  </div>
+
+  <div id="sep"></div>
+
+  <div id="soc-title">Security Operations Center</div>
+</div>
+
+<script>
+  const canvas = document.getElementById('matrix');
+  const ctx    = canvas.getContext('2d');
+
+  const SOURCE    = 'Conagra SOC static';
+  const FONT_SIZE = 16;
+
+  // Conagra brand palette (red / green / blue)
+  const BRAND = ['#E44130', '#71B842', '#0776B3'];
+  // Slightly brighter head variants
+  const BRIGHT = ['#ff7a6a', '#b0f06e', '#5dc4ff'];
+
+  let cols, drops, colColor;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols     = Math.floor(canvas.width / FONT_SIZE);
+    drops    = Array.from({ length: cols }, () => Math.random() * -(canvas.height / FONT_SIZE));
+    colColor = Array.from({ length: cols }, () => Math.floor(Math.random() * 3));
+  }
+
+  function randomChar() {
+    return SOURCE[Math.floor(Math.random() * SOURCE.length)];
+  }
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = `${FONT_SIZE}px 'Courier New', monospace`;
+
+    for (let i = 0; i < drops.length; i++) {
+      const y   = drops[i] * FONT_SIZE;
+      const ci  = colColor[i];
+
+      // Leading (head) character — bright
+      ctx.fillStyle = BRIGHT[ci];
+      ctx.fillText(randomChar(), i * FONT_SIZE, y);
+
+      // Body character — brand colour
+      ctx.fillStyle = BRAND[ci];
+      ctx.fillText(randomChar(), i * FONT_SIZE, y - FONT_SIZE);
+
+      if (y > canvas.height && Math.random() > 0.975) {
+        drops[i]    = 0;
+        colColor[i] = Math.floor(Math.random() * 3); // reassign colour on reset
+      }
+
+      drops[i] += 0.5 + Math.random() * 0.5;
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(draw, 33);
+</script>
+</body>
+</html>
